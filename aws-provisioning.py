@@ -6,10 +6,10 @@ ec2_client = boto3.client('ec2')
 cloudwatch_client = boto3.client('cloudwatch')
 ce_client = boto3.client('ce')  # Cost Explorer client for billing information
 
-# Function to check EC2 instance status
-def check_ec2_status():
+# Function to optimize Reserved Instances (RIs) based on real-time needs
+def optimize_reserved_instances():
+    # Fetch current EC2 instance usage data
     instances = ec2_client.describe_instances()
-    instance_data = []
     
     for reservation in instances['Reservations']:
         for instance in reservation['Instances']:
@@ -17,15 +17,66 @@ def check_ec2_status():
             instance_type = instance['InstanceType']
             state = instance['State']['Name']
             
-            print(f"Instance ID: {instance_id}, Type: {instance_type}, State: {state}")
-            
-            instance_data.append({
-                "instance_id": instance_id,
-                "instance_type": instance_type,
-                "state": state
-            })
+            # Check if the instance is in 'running' state
+            if state == 'running':
+                # Fetch real-time CPU utilization data
+                utilization = check_ec2_utilization(instance_id)
+                
+                # Algorithm to decide whether to allocate RI or not
+                if utilization and utilization > 20:  # Adjust threshold as needed
+                    print(f"Allocating RI for Instance {instance_id} with {utilization:.2f}% utilization.")
+                    # Logic to allocate RI (simulated here)
+                    allocate_reserved_instance(instance_id, instance_type)
+                else:
+                    print(f"Instance {instance_id} is underutilized, keeping it on-demand.")
+
+# Function to allocate Reserved Instance (RI) - Placeholder logic
+def allocate_reserved_instance(instance_id, instance_type):
+    # Placeholder function to simulate allocation of RI
+    print(f"Simulated allocation of RI for instance {instance_id} of type {instance_type}")
+
+# Function to manage dynamic block storage
+def manage_dynamic_block_storage():
+    volumes = ec2_client.describe_volumes()
     
-    return instance_data
+    for volume in volumes['Volumes']:
+        volume_id = volume['VolumeId']
+        size = volume['Size']  # Size in GiB
+        attached_instances = volume['Attachments']
+        
+        if attached_instances:
+            print(f"Volume {volume_id} is attached to an instance, size: {size} GiB")
+            # Simulate checking current usage - assume 30% of volume is generally used
+            current_usage = size * 0.3
+            
+            # Logic to adjust volume size based on demand
+            if current_usage < (size * 0.7):  # If more than 30% is unused
+                print(f"Shrinking volume {volume_id} to match demand.")
+                # Logic to shrink the volume (AWS does not support shrinking directly, simulated here)
+                shrink_volume(volume_id)
+            else:
+                print(f"Volume {volume_id} is being used efficiently.")
+        else:
+            print(f"Volume {volume_id} is unattached, consider deleting it.")
+
+# Function to shrink volume - Placeholder logic
+def shrink_volume(volume_id):
+    # Placeholder function to simulate shrinking of block storage volume
+    print(f"Simulated shrinking of volume {volume_id}")
+
+# Function to identify unused resources for cost optimization
+def identify_unused_resources():
+    # Identify unused Elastic IPs (EIPs)
+    eips = ec2_client.describe_addresses()
+    for eip in eips['Addresses']:
+        if 'InstanceId' not in eip:
+            print(f"Unattached EIP found: {eip['PublicIp']} - consider releasing it.")
+
+    # Identify unused volumes
+    volumes = ec2_client.describe_volumes()
+    for volume in volumes['Volumes']:
+        if not volume['Attachments']:
+            print(f"Unattached volume found: {volume['VolumeId']} - consider deleting it.")
 
 # Function to check EC2 instance utilization
 def check_ec2_utilization(instance_id):
@@ -49,45 +100,24 @@ def check_ec2_utilization(instance_id):
     
     if response['Datapoints']:
         average_utilization = sum([dp['Average'] for dp in response['Datapoints']]) / len(response['Datapoints'])
-        print(f"Instance {instance_id} Average CPU Utilization (last 24h): {average_utilization:.2f}%")
         return average_utilization
     else:
-        print(f"No utilization data available for instance {instance_id}")
         return None
-
-# Function to check billing details for the past month
-def check_billing():
-    start_time = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
-    end_time = datetime.utcnow().strftime('%Y-%m-%d')
-    
-    response = ce_client.get_cost_and_usage(
-        TimePeriod={
-            'Start': start_time,
-            'End': end_time
-        },
-        Granularity='MONTHLY',
-        Metrics=['UnblendedCost']
-    )
-    
-    cost = response['ResultsByTime'][0]['Total']['UnblendedCost']['Amount']
-    print(f"Total cost for the last month: ${cost}")
-    return float(cost)
 
 # Main function
 def main():
-    # Check EC2 provisioning status
-    instance_data = check_ec2_status()
+    # Optimize RIs based on real-time needs
+    print("Optimizing Reserved Instances based on real-time needs...")
+    optimize_reserved_instances()
     
-    # Check utilization for each running instance
-    for instance in instance_data:
-        if instance['state'] == 'running':
-            utilization = check_ec2_utilization(instance['instance_id'])
-            if utilization is not None and utilization < 20:  # Example threshold
-                print(f"Warning: Instance {instance['instance_id']} is underutilized with {utilization:.2f}% CPU.")
+    # Manage block storage dynamically
+    print("\nManaging dynamic block storage...")
+    manage_dynamic_block_storage()
     
-    # Check billing information
-    total_cost = check_billing()
-    print(f"Customer has been billed ${total_cost:.2f} in the past month.")
-    
+    # Identify and address unused resources for cost savings
+    print("\nIdentifying unused resources...")
+    identify_unused_resources()
+
 if __name__ == "__main__":
     main()
+
