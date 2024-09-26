@@ -44,3 +44,20 @@ Data Privacy Concerns: Storing sensitive data in the cloud may raise compliance 
 2) Ongoing Costs: While initial costs are lower, the cumulative expenses of cloud services can become significant over time, especially for data-intensive applications.
 
 3) Less Control: Organizations may have limited control over their infrastructure compared to on-premise setups, which can be a concern for those with specific compliance or security needs.
+
+
+## Summary 
+
+| **Aspect**                         | **Without Containerization**                                           | **With Containerization (Docker & Kubernetes)**                        |
+|-------------------------------------|------------------------------------------------------------------------|------------------------------------------------------------------------|
+| **Simplicity**                      | Easier to set up and manage for smaller applications.                  | More complex setup and management, requiring knowledge of Docker/Kubernetes. |
+| **Scalability**                     | Manual scaling and load balancing.                                     | Automated scaling and load balancing with Kubernetes.                  |
+| **Environment Consistency**         | Potential for inconsistencies across different environments.           | Consistent environment across different stages and deployments.        |
+| **Resource Utilization**            | Might be less efficient in resource usage.                             | Efficient resource utilization through container orchestration.        |
+| **Portability**                     | Limited portability, tied to the specific infrastructure.              | Highly portable across different cloud providers and environments.     |
+| **Resilience and Self-healing**     | Limited to manual intervention for restarts and failovers.             | Kubernetes provides self-healing, auto-restarts, and rolling updates.  |
+| **Operational Complexity**          | Simpler for smaller projects but becomes complex as the system grows.  | Higher operational complexity but handles large systems effectively.   |
+| **Learning Curve**                  | Easier to learn for beginners.                                         | Steeper learning curve due to Docker and Kubernetes concepts.          |
+| **Deployment Speed**                | Slower deployment and rollback processes.                              | Faster deployment and rollback with container images and orchestration.|
+| **Ideal Use Case**                  | Best for smaller projects or simple microservices.                     | Suitable for large, complex, and dynamic microservice architectures.   |
+
